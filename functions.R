@@ -24,7 +24,12 @@ AMS = function(weight, act, pred){
 
 makeOutput = function(preds, fname)
 {
-  if(nrow(preds)==800000)
+  if( is.matrix(preds) | is.data.frame(preds) )
+  {
+    warning("Converting preds to numeric by taking first column.")
+    preds = preds[,1]
+  }
+  if(length(preds)==800000)
   {
     if(is.numeric(preds))
     {
@@ -41,7 +46,7 @@ makeOutput = function(preds, fname)
     output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=preds[d$cvGroup==-1] )
     write.csv(output, file=paste0("Submissions/",fname,"_",round(score,5),".csv"))
   }
-  if(nrow(preds)==550000)
+  if(length(preds)==550000)
   {
     if(is.numeric(preds))
     {
