@@ -37,6 +37,7 @@ makeOutput = function(preds, fname)
         AMS( d$Weight, d$Label, ifelse(out>i,"s","b") ) } )
       RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
       preds = ifelse( preds>seq(0,1,length.out=100)[which.max(cutoff)], "s", "b" )
+      print(paste("Optimal cutoff value:", round(seq(0,1,length.out=100)[which.max(cutoff)],2)))
     }
     else
     {
@@ -44,7 +45,7 @@ makeOutput = function(preds, fname)
     }
     score = AMS( d$Weight, d$Label, preds )
     output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=preds[d$cvGroup==-1] )
-    write.csv(output, file=paste0("Submissions/",fname,"_",round(score,5),".csv"))
+    write.csv(output, file=paste0("Submissions/",fname,"_",round(score,5),".csv"), row.names=F)
   }
   if(length(preds)==550000)
   {
@@ -55,6 +56,6 @@ makeOutput = function(preds, fname)
     }
     RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
     output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=preds )
-    write.csv(output, file=paste0("Submissions/",fname,".csv"))
+    write.csv(output, file=paste0("Submissions/",fname,".csv"), row.names=F)
   }
 }
