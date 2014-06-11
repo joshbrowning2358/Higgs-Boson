@@ -16,12 +16,19 @@ test$Label = NA
 d = rbind(train, test)
 d$Model_No = ifelse( d$PRI_jet_num==0, 0, ifelse( d$PRI_jet_num==1, 1, 2) )
 d$Model_No[is.na(d$DER_mass_MMC)] = d$Model_No[is.na(d$DER_mass_MMC)] + 3
-data = big.matrix(nrow=nrow(d), ncol=200, backingfile="data", backingpath="Data/")
+d$cvGroup = -1
+d$cvGroup[!is.na(d$Label)] = sample(1:10, replace=T, size=sum(!is.na(d$Label)) )
 
-cnames = c()
-for(i in 1:ncol(d) ){
-  data[,i] = d[,i]
-  cnames = c(cnames,colnames(d)[i])
+#table( d$cvGroup, d$Model_No )
+save(d, file="Data/finalData.RData")
+
+phiCols = colnames(d)[grepl("_phi$",colnames(d))]
+for(i in phiCols)
+{
+  d = cbind(d, sin(d[,i]) )
+  d = cbind(d, cos(d[,i]) )
+  colnames(d)[ncol(d)+(-1):0] = paste0(c("sin_","cos_"),i)
+  d[,i] = NULL
 }
-summary( data[,1:34] )
-write.csv(cnames, "Data/cnames.csv")
+
+save(d, file="Data/finalData2.RData")
