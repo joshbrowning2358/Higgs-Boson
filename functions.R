@@ -26,7 +26,10 @@ AMS = function(weight, act, pred){
     return( sqrt(2*((s+b+br)*log(1+s/(b+br))-s)) )
 }
 
-cvModelNo = function(modelText, argsText, depCols=list(c(2:5,9:13,15:21,26,31:36), c(2:5,9:13,15:23,26,31:38), c(2:26,31:40), c(3:5,9:13,15:21,26,31:36), c(3:5,9:13,15:23,26,31:38), c(3:26,31:40)) )
+#Use code below to determine depCols
+#(1:ncol(d))[!apply(d[d$Model_No==2,], 2, function(x)any(is.na(x)) )]
+
+cvModelNo = function(modelText, argsText, depCols=list(18:40, 14:40, 6:40, 19:40, c(14:17,19:40), c(6:17,19:40)) )
 {
   d$Signal = as.numeric(d$Label=="s")
   mods = lapply(0:5, function(i)
