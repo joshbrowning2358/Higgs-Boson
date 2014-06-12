@@ -6,6 +6,7 @@ library(mgcv)
 library(randomForest)
 library(neuralnet)
 library(nnet)
+library(e1071)
 
 setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
 options(width=100)
@@ -23,6 +24,23 @@ AMS = function(weight, act, pred){
     b = sum( weight*(act=="b")*(pred=="s") )
     br = 10
     return( sqrt(2*((s+b+br)*log(1+s/(b+br))-s)) )
+}
+
+cvModelNo = function(modelText, argsText, depCols=list(c(2:5,9:13,15:21,26,31:36), c(2:5,9:13,15:23,26,31:38), c(2:26,31:40), c(3:5,9:13,15:21,26,31:36), c(3:5,9:13,15:23,26,31:38), c(3:26,31:40)) )
+{
+  d$Signal = as.numeric(d$Label=="s")
+  mods = lapply(0:5, function(i)
+  {
+    model = paste0( modelText, "( Signal ~ ", paste(colnames(d)[depCols[[i+1]]], collapse="+"),
+                    argsText, ")" )
+    return( cvModel( d[d$Model_No==i,], d$cvGroup[d$Model_No==i], indCol=which(colnames(d)=="Signal"), model=model ) )
+  })
+  preds = matrix(0,nrow=nrow(d))
+  for(i in 0:5)
+  {
+    preds[d$Model_No==i,] = mods[[i+1]]$ensem[,1]
+  }
+  return(preds)
 }
 
 makeOutput = function(preds, fname)
