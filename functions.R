@@ -61,11 +61,32 @@ makeOutput = function(preds, fname)
   {
     if(is.numeric(preds))
     {
-      cutoff = sapply( seq(0,1,length.out=100), function(i){
+      cutoff = sapply( seq(min(preds), max(preds), length.out=10), function(i){
         AMS( d$Weight, d$Label, ifelse(out>i,"s","b") ) } )
+      cutMid = seq(min(preds), max(preds), length.out=10)[which.max(cutoff)]
+      cutLow = cutMid - (max(preds)-min(preds))/9
+      cutHigh = cutMid + (max(preds)-min(preds))/9
+      AMSMid = cutoff[which.max(cutoff)]
+      AMSLow = cutoff[which.max(cutoff)-1]
+      AMSHigh = cutoff[which.max(cutoff)+1]
+      for(i in 1:10)
+      {
+        if(AMSLow>AMSHigh)
+        {
+          cutHigh = cutMid
+          AMSHigh = AMSMid
+          cutMid = (cutHigh + cutLow)/2
+          AMSMid = AMS( d$Weight, d$Label, ifelse(out>cutMid,"s","b") )
+        } else {
+          cutLow = cutMid
+          AMSLow = AMSMid
+          cutMid = (cutHigh + cutLow)/2
+          AMSMid = AMS( d$Weight, d$Label, ifelse(out>cutMid,"s","b") )          
+        }
+      }
       RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
-      preds = ifelse( preds>seq(0,1,length.out=100)[which.max(cutoff)], "s", "b" )
-      print(paste("Optimal cutoff value:", round(seq(0,1,length.out=100)[which.max(cutoff)],2)))
+      preds = ifelse( preds>cutMid, "s", "b" )
+      print(paste("Cutoff value used:", round(cutMid,4)))
     }
     else
     {
