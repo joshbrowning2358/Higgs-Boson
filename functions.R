@@ -6,6 +6,7 @@ library(mgcv)
 library(randomForest)
 library(neuralnet)
 library(nnet)
+library(gbm)
 library(e1071)
 
 setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
