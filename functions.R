@@ -29,13 +29,17 @@ AMS = function(weight, act, pred){
 #Use code below to determine depCols
 #(1:ncol(d))[!apply(d[d$Model_No==2,], 2, function(x)any(is.na(x)) )]
 
-cvModelNo = function(modelText, argsText, depCols=list(18:40, 14:40, 6:40, 19:40, c(14:17,19:40), c(6:17,19:40)) )
+cvModelNo = function(modelText, argsText, depCols=list(18:40, 14:40, 6:40, 19:40, c(14:17,19:40), c(6:17,19:40)), useLabel=F )
 {
   d$Signal = as.numeric(d$Label=="s")
   mods = lapply(0:5, function(i)
   {
-    model = paste0( modelText, "( Signal ~ ", paste(colnames(d)[depCols[[i+1]]], collapse="+"),
-                    argsText, ")" )
+    if(!useLabel)
+      model = paste0( modelText, "( Signal ~ ", paste(colnames(d)[depCols[[i+1]]], collapse="+"),
+                      argsText, ")" )
+    else
+      model = paste0( modelText, "( Label ~ ", paste(colnames(d)[depCols[[i+1]]], collapse="+"),
+                      argsText, ")" )      
     return( cvModel( d[d$Model_No==i,], d$cvGroup[d$Model_No==i], indCol=which(colnames(d)=="Signal"), model=model ) )
   })
   preds = matrix(0,nrow=nrow(d))
