@@ -1,4 +1,7 @@
-setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
+if(Sys.info()[1]=="Windows")
+  setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
+if(Sys.info()[1]=="Linux")
+  setwd("/media/storage/Personal Files/Kaggle/Higgs Boson/")
 load("Data/finalData2.RData")
 source_github("https://raw.githubusercontent.com/rockclimber112358/Ensemble_Building_Code/master/cvModel.R")
 source_github("https://raw.githubusercontent.com/rockclimber112358/Higgs-Boson/master/functions.R")
