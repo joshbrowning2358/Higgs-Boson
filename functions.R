@@ -9,7 +9,10 @@ library(nnet)
 library(gbm)
 library(e1071)
 
-setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
+if(Sys.info()[1]=="Windows")
+  setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
+if(Sys.info()[1]=="Linux")
+  setwd("/media/storage/Personal Files/Kaggle/Higgs Boson/")
 options(width=100)
 
 AMS = function(weight, act, pred){
@@ -28,10 +31,20 @@ AMS = function(weight, act, pred){
 }
 
 #Use code below to determine depCols
-#(1:ncol(d))[!apply(d[d$Model_No==2,], 2, function(x)any(is.na(x)) )]
+#(1:ncol(d))[!apply(d[d$Model_No==0,][1:1000,], 2, function(x)any(is.na(x)) )]
 
-cvModelNo = function(modelText, argsText, depCols=list(18:40, 14:40, 6:40, 19:40, c(14:17,19:40), c(6:17,19:40)), useLabel=F )
+#useSin: specifies if the sin and cos of the phi variables should be used.
+#useTheta: specifies if the raw phi variables should be used.
+cvModelNo = function(modelText, argsText, useSin=F, useTheta=T, useLabel=F )
 {
+  
+  depCols=list(c(20:36,ifelse(useTheta,37:39,NA),ifelse(useSin,40:45,NA))
+              ,c(15:16,20:36,ifelse(useTheta,c(17,37:39),NA),ifelse(useSin,c(18:19,40:45),NA))
+              ,c(6:11,15:16,20:36,ifelse(useTheta,c(12,17,37:39),NA),ifelse(useSin,c(13:14,18:19,40:45),NA))
+              ,c(21:36,ifelse(useTheta,c(37:39),NA),ifelse(useSin,c(40:45),NA))
+              ,c(15:19,21:45)
+              ,c(6:11,15:16,21:36,ifelse(useTheta,c(12,17,37:39),NA),ifelse(useSin,c(13:14,18:19,40:45),NA)) )
+  depCols=lapply(depCols, function(x){x[!is.na(x)]})
   d$Signal = as.numeric(d$Label=="s")
   mods = lapply(0:5, function(i)
   {
