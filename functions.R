@@ -8,6 +8,7 @@ library(neuralnet)
 library(nnet)
 library(gbm)
 library(e1071)
+library(RSNNS)
 
 if(Sys.info()[1]=="Windows")
   setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
