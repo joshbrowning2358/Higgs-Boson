@@ -93,12 +93,12 @@ makeOutput = function(preds, fname)
           cutHigh = cutMid
           AMSHigh = AMSMid
           cutMid = (cutHigh + cutLow)/2
-          AMSMid = AMS( d$Weight, d$Label, ifelse(out>cutMid,"s","b") )
+          AMSMid = AMS( d$Weight, d$Label, ifelse(preds>cutMid,"s","b") )
         } else {
           cutLow = cutMid
           AMSLow = AMSMid
           cutMid = (cutHigh + cutLow)/2
-          AMSMid = AMS( d$Weight, d$Label, ifelse(out>cutMid,"s","b") )          
+          AMSMid = AMS( d$Weight, d$Label, ifelse(preds>cutMid,"s","b") )          
         }
       }
       RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
