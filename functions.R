@@ -79,7 +79,7 @@ makeOutput = function(preds, fname)
     if(is.numeric(preds))
     {
       cutoff = sapply( seq(min(preds), max(preds), length.out=10), function(i){
-        AMS( d$Weight, d$Label, ifelse(out>i,"s","b") ) } )
+        AMS( d$Weight, d$Label, ifelse(preds>i,"s","b") ) } )
       cutMid = seq(min(preds), max(preds), length.out=10)[which.max(cutoff)]
       cutLow = cutMid - (max(preds)-min(preds))/9
       cutHigh = cutMid + (max(preds)-min(preds))/9
