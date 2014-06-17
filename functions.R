@@ -17,7 +17,6 @@ if(Sys.info()[1]=="Linux" & Sys.info()[4]=="?")
 if(Sys.info()[1]=="Linux" & grepl("ch120",Sys.info()[4]))
   setwd("~/Kaggle/Higgs Boson/")
 source_github("https://raw.githubusercontent.com/rockclimber112358/Ensemble_Building_Code/master/cvModel.R")
-options(width=100)
 
 AMS = function(weight, act, pred){
     if(any(is.na(act)))
