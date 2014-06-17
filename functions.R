@@ -12,8 +12,10 @@ library(RSNNS)
 
 if(Sys.info()[1]=="Windows")
   setwd("C:/Users/rockc_000/Documents/Personal Files/Kaggle/Higgs Boson/")
-if(Sys.info()[1]=="Linux")
+if(Sys.info()[1]=="Linux" & Sys.info()[4]=="?")
   setwd("/media/storage/Personal Files/Kaggle/Higgs Boson/")
+if(Sys.info()[1]=="Linux" & grepl("ch120",Sys.info()[4]))
+  setwd("~/Kaggle/Higgs Boson/")
 source_github("https://raw.githubusercontent.com/rockclimber112358/Ensemble_Building_Code/master/cvModel.R")
 options(width=100)
 
