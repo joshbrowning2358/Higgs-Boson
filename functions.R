@@ -67,43 +67,55 @@ cvModelNo = function(modelText, argsText, useSin=F, useTheta=T, useLabel=F )
   return(preds)
 }
 
-makeOutput = function(preds, fname)
+makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
 {
+  #Data quality checks
+  if(!is(fname,"character"))
+    stop("!is(fname,"character")")
+  if(splitByGroup & length(modelNo!=800000))
+    stop("splitByGroup & length(modelNo!=800000).  To split by group we need modelNo!"
   if( is.matrix(preds) | is.data.frame(preds) )
-  {
-    warning("Converting preds to numeric by taking first column.")
-    preds = preds[,1]
-  }
+    stop("is.matrix(preds) | is.data.frame(preds).  Ensure preds is a numeric vector!")
+  if(splitByGroup & !is(preds,"numeric"))
+    stop("splitByGroup & !is(preds,"numeric").  preds must be numeric to use splitByGroup!")
+
   if(length(preds)==800000)
   {
     if(is.numeric(preds))
     {
-      cutoff = sapply( seq(min(preds), max(preds), length.out=10), function(i){
-        AMS( d$Weight, d$Label, ifelse(preds>i,"s","b") ) } )
-      cutMid = seq(min(preds), max(preds), length.out=10)[which.max(cutoff)]
-      cutLow = cutMid - (max(preds)-min(preds))/9
-      cutHigh = cutMid + (max(preds)-min(preds))/9
-      AMSMid = cutoff[which.max(cutoff)]
-      AMSLow = cutoff[which.max(cutoff)-1]
-      AMSHigh = cutoff[which.max(cutoff)+1]
-      for(i in 1:10)
-      {
-        if(AMSLow>AMSHigh)
+      if(!splitByGroup)
+        modelNo = rep(1,800000)
+      
+      for(i in unique(modelNo) ){
+        predsTemp = preds[modelNo==i]
+        dTemp = d[modelNo==i,]
+        cutoff = sapply( seq(min(predsTemp), max(predsTemp), length.out=10), function(i){
+          AMS( dTemp$Weight, dTemp$Label, ifelse(predsTemp>i,"s","b") ) } )
+        cutMid = seq(min(predsTemp), max(predsTemp), length.out=10)[which.max(cutoff)]
+        cutLow = cutMid - (max(predsTemp)-min(predsTemp))/9
+        cutHigh = cutMid + (max(predsTemp)-min(predsTemp))/9
+        AMSMid = cutoff[which.max(cutoff)]
+        AMSLow = cutoff[which.max(cutoff)-1]
+        AMSHigh = cutoff[which.max(cutoff)+1]
+        for(i in 1:10)
         {
-          cutHigh = cutMid
-          AMSHigh = AMSMid
-          cutMid = (cutHigh + cutLow)/2
-          AMSMid = AMS( d$Weight, d$Label, ifelse(preds>cutMid,"s","b") )
-        } else {
-          cutLow = cutMid
-          AMSLow = AMSMid
-          cutMid = (cutHigh + cutLow)/2
-          AMSMid = AMS( d$Weight, d$Label, ifelse(preds>cutMid,"s","b") )          
+          if(AMSLow>AMSHigh)
+          {
+            cutHigh = cutMid
+            AMSHigh = AMSMid
+            cutMid = (cutHigh + cutLow)/2
+            AMSMid = AMS( dTemp$Weight, dTemp$Label, ifelse(predsTemp>cutMid,"s","b") )
+          } else {
+            cutLow = cutMid
+            AMSLow = AMSMid
+            cutMid = (cutHigh + cutLow)/2
+            AMSMid = AMS( dTemp$Weight, dTemp$Label, ifelse(predsTemp>cutMid,"s","b") )          
+          }
         }
+        RankOrder = rank(predsTemp[d$cvGroup==-1], ties.method="random")
+        predsTemp = ifelse( predsTemp>cutMid, "s", "b" )
+        print(paste("Cutoff value used:", round(cutMid,4)))
       }
-      RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
-      preds = ifelse( preds>cutMid, "s", "b" )
-      print(paste("Cutoff value used:", round(cutMid,4)))
     }
     else
     {
