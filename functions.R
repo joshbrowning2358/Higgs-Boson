@@ -71,14 +71,15 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
 {
   #Data quality checks
   if(!is(fname,"character"))
-    stop("!is(fname,"character")")
-  if(splitByGroup & length(modelNo!=800000))
-    stop("splitByGroup & length(modelNo!=800000).  To split by group we need modelNo!"
+    stop("!is(fname,'character')")
+  if(splitByGroup & length(modelNo)!=800000)
+    stop("splitByGroup & length(modelNo)!=800000.  To split by group we need modelNo!")
   if( is.matrix(preds) | is.data.frame(preds) )
     stop("is.matrix(preds) | is.data.frame(preds).  Ensure preds is a numeric vector!")
   if(splitByGroup & !is(preds,"numeric"))
-    stop("splitByGroup & !is(preds,"numeric").  preds must be numeric to use splitByGroup!")
+    stop("splitByGroup & !is(preds,'numeric').  preds must be numeric to use splitByGroup!")
 
+  write.csv(preds, paste0("Submissions/",fname,"_raw.csv"), row.names=F)
   if(length(preds)==800000)
   {
     if(is.numeric(preds))
@@ -86,6 +87,7 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
       if(!splitByGroup)
         modelNo = rep(1,800000)
       
+      out = rep(0,800000)
       for(i in unique(modelNo) ){
         predsTemp = preds[modelNo==i]
         dTemp = d[modelNo==i,]
@@ -97,7 +99,7 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
         AMSMid = cutoff[which.max(cutoff)]
         AMSLow = cutoff[which.max(cutoff)-1]
         AMSHigh = cutoff[which.max(cutoff)+1]
-        for(i in 1:10)
+        for(j in 1:10)
         {
           if(AMSLow>AMSHigh)
           {
@@ -115,15 +117,20 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
         RankOrder = rank(predsTemp[d$cvGroup==-1], ties.method="random")
         predsTemp = ifelse( predsTemp>cutMid, "s", "b" )
         print(paste("Cutoff value used:", round(cutMid,4)))
+        out[modelNo==i] = predsTemp
       }
     }
     else
     {
       RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
+      out = preds
     }
-    score = AMS( d$Weight, d$Label, preds )
-    output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=preds[d$cvGroup==-1] )
-    write.csv(output, file=paste0("Submissions/",fname,"_",round(score,5),".csv"), row.names=F)
+    score = AMS( d$Weight, d$Label, out )
+    output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=out[d$cvGroup==-1] )
+    if(splitByGroup)
+      write.csv(output, file=paste0("Submissions/",fname,"_splitByGroup_",round(score,5),".csv"), row.names=F)    
+    else
+      write.csv(output, file=paste0("Submissions/",fname,"_",round(score,5),".csv"), row.names=F)
   }
   if(length(preds)==550000)
   {
