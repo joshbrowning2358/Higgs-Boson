@@ -69,7 +69,7 @@ cvModelNo = function(modelFunc, predFunc=predict, useSin=F, useTheta=T, construc
   return(preds)
 }
 
-makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
+makeOutput = function(preds, call, splitByGroup=F, modelNo=NULL)
 {
   #Data quality checks
   if(!is(fname,"character"))
@@ -81,7 +81,14 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
   if(splitByGroup & !is(preds,"numeric"))
     stop("splitByGroup & !is(preds,'numeric').  preds must be numeric to use splitByGroup!")
 
-  write.csv(preds, paste0("Submissions/",fname,"_raw.csv"), row.names=F)
+  files = list.files("Submissions")
+  files = files[grepl("_raw", files)]
+  ids = as.numeric( gsub("_raw.csv", "", files) )
+  ids = ids[!is.na(ids)]
+  newId = min(ids,0)+1
+  write.csv(preds, paste0("Submissions/",newId,"_raw.csv"), row.names=F)
+
+  #Write out Kaggle submission
   if(length(preds)==800000)
   {
     if(is.numeric(preds))
@@ -130,9 +137,9 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
     score = AMS( d$Weight, d$Label, out )
     output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=out[d$cvGroup==-1] )
     if(splitByGroup)
-      write.csv(output, file=paste0("Submissions/",fname,"_splitByGroup_",round(score,5),".csv"), row.names=F)    
+      write.csv(output, file=paste0("Submissions/",id,"_splitByGroup_",round(score,5),".csv"), row.names=F)    
     else
-      write.csv(output, file=paste0("Submissions/",fname,"_",round(score,5),".csv"), row.names=F)
+      write.csv(output, file=paste0("Submissions/",id,"_",round(score,5),".csv"), row.names=F)
   }
   if(length(preds)==550000)
   {
@@ -143,6 +150,14 @@ makeOutput = function(preds, fname, splitByGroup=F, modelNo=NULL)
     }
     RankOrder = rank(preds[d$cvGroup==-1], ties.method="random")
     output = data.frame( EventId=d$EventId[d$cvGroup==-1], RankOrder=RankOrder, Class=preds )
-    write.csv(output, file=paste0("Submissions/",fname,".csv"), row.names=F)
+    write.csv(output, file=paste0("Submissions/",id,".csv"), row.names=F)
   }
+  
+  if("desc.csv" %in% list.files("Submissions") ){
+    desc = read.csv("Submissions/desc.csv", stringsAsFactors=F)
+    desc = rbind( desc, data.frame(id, call) )
+  } else {
+    desc = data.frame(id, call)
+  }
+  write.csv(desc, file="Submissions/desc.csv")
 }
