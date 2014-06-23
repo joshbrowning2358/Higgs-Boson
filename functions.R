@@ -38,8 +38,12 @@ AMS = function(weight, act, pred){
 
 #useSin: specifies if the sin and cos of the phi variables should be used.
 #useTheta: specifies if the raw phi variables should be used.
-cvModelNo = function(modelText, argsText, useSin=F, useTheta=T, useLabel=F )
+cvModelNo = function(modelFunc, predFunc=predict, useSin=F, useTheta=T, constructForm=F
+            ,args=list(), pred.cols=1)
 {
+  #Data quality checks
+  if(nrow(d)!=800000)
+    stop("d doesn't have 800000 rows, something is likely wrong")
   
   depCols=list(c(20:36,ifelse(useTheta,37:39,NA),ifelse(useSin,40:45,NA))
               ,c(15:16,20:36,ifelse(useTheta,c(17,37:39),NA),ifelse(useSin,c(18:19,40:45),NA))
@@ -49,20 +53,18 @@ cvModelNo = function(modelText, argsText, useSin=F, useTheta=T, useLabel=F )
               ,c(6:11,15:16,21:36,ifelse(useTheta,c(12,17,37:39),NA),ifelse(useSin,c(13:14,18:19,40:45),NA)) )
   depCols=lapply(depCols, function(x){x[!is.na(x)]})
   d$Signal = as.numeric(d$Label=="s")
-  mods = lapply(0:5, function(i)
-  {
-    if(!useLabel)
-      model = paste0( modelText, "( Signal ~ ", paste(colnames(d)[depCols[[i+1]]], collapse="+"),
-                      argsText, ")" )
-    else
-      model = paste0( modelText, "( Label ~ ", paste(colnames(d)[depCols[[i+1]]], collapse="+"),
-                      argsText, ")" )      
-    return( cvModel( d[d$Model_No==i,], d$cvGroup[d$Model_No==i], indCol=which(colnames(d)=="Signal"), model=model ) )
-  })
-  preds = matrix(0,nrow=nrow(d))
+  preds = matrix(0,nrow=nrow(d), ncol=pred.cols)
   for(i in 0:5)
   {
-    preds[d$Model_No==i,] = mods[[i+1]]$ensem[,1]
+    if(constructForm){
+      form = as.formula( paste("Signal ~", paste(colnames(d)[depCols[[i+1]]], collapse="+") ) )
+      fit = cvModel( modelFunc, d$cvGroup[d$Model_No==i], predFunc, d=d[d$Model_No==i,]
+                ,form=form, args=args, pred.cols=pred.cols)
+    } else {
+      fit = cvModel( modelFunc, d$cvGroup[d$Model_No==i], predFunc, x=d[d$Model_No==i,depCols[[i+1]]]
+                ,y=d[d$Model_No==i,46], args=args, pred.cols=pred.cols)
+    }
+    preds[d$Model_No==i,] = fit$ensem[1:nrow(fit$ensem),]
   }
   return(preds)
 }
