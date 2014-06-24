@@ -87,7 +87,7 @@ makeOutput = function(preds, call, splitByGroup=F, modelNo=NULL)
   files = files[grepl("_raw", files)]
   ids = as.numeric( gsub("_raw.csv", "", files) )
   ids = ids[!is.na(ids)]
-  newId = min(ids,0)+1
+  newId = max(ids,0)+1
   write.csv(preds, paste0("Submissions/",newId,"_raw.csv"), row.names=F)
 
   #Write out Kaggle submission
@@ -161,5 +161,5 @@ makeOutput = function(preds, call, splitByGroup=F, modelNo=NULL)
   } else {
     desc = data.frame(newId, call)
   }
-  write.csv(desc, file="Submissions/desc.csv")
+  write.csv(desc, file="Submissions/desc.csv", row.names=F)
 }
