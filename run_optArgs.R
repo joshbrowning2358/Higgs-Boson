@@ -39,17 +39,25 @@ optParams( func=randomForestWrap, x=d2[1:250000,6:45], y=d2$Label[1:250000], opt
   ,constArgs=list(ntree=log10(300))
 )
 
-gbmWrap = function( x, y, wtMult, ){
+gbmWrap = function( x, y, wtMult, n.trees, interaction.depth, n.minobsinnode, shrinkage
+                    ,bag.fraction){
   #Large cutoff values lead to more "s" labels in predictions (as long as y is a factor!)
-  return( gbm( x=x, y=y, ntree=round(10^ntree), mtry=mtry, cutoff=c(cutoff,1-cutoff)
-                  ,nodesize=nodesize, sampsize=sampsize, replace=replace, weights=) )
+  return( gbm.fit( x=x, y=y, n.trees=n.trees, interaction.depth=interaction.depth
+          ,n.minobsinnode=n.minobsinnode, shrinkage=shrinkage, bag.fraction=bag.fraction
+          ,w=ifelse(y=="b", 1, wtMult), verbose=F) )
 }
-optArgs = list(as.list(c("interaction.depth", "ordered", 0) ) )
-optArgs[[1]][[3]] = c(1,10)
-optArgs[[2]] = as.list(c("n.minobsinnode", "ordered", 0) )
-optArgs[[2]][[3]] = c(10,200)
+optArgs = list(as.list(c("wtMult", "numeric", 0) ) )
+optArgs[[1]][[3]] = c(1,1000)
+optArgs[[2]] = as.list(c("interaction.depth", "ordered", 0) )
+optArgs[[2]][[3]] = c(1,12)
+optArgs[[3]] = as.list(c("n.minobsinnode", "ordered", 0) )
+optArgs[[3]][[3]] = c(1,500)
+optArgs[[4]] = as.list(c("shrinkage", "numeric", 0) )
+optArgs[[4]][[3]] = c(.01,.0001)
+optArgs[[5]] = as.list(c("bag.fraction", "numeric", 0) )
+optArgs[[5]][[3]] = c(.1,1)
 optParams( func=gbm.fit, x=d2[1:250000,6:45], y=d2[1:250000,46], optArgs=optArgs
-  ,coldStart=30, nTrain=c(2000,10000,20000,50000)
+  ,coldStart=50, nTrain=c(2000,10000,20000,50000)
   ,optFunc=function(pred,actual){
     -AMS(d2$Weight[samVal],  d2$Label[samVal], ifelse(pred>median(pred),"s","b"))}
 )
