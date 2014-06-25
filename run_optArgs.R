@@ -74,5 +74,10 @@ optParams( func=gbmWrap, x=d2[1:250000,6:45], y=d2[1:250000,46], optArgs=optArgs
     return(preds) }
   ,constArgs=list(n.trees=200)
 )
-cvModel( modelFunc=gbmWrap, cvGroup=d2$cvGroup, x=d2[,6:45], y=d2$Label,
-  args=list(bag.fraction=0.1, cutoff=0.9, interaction.depth=12, n.minobsinnode=30, shrinkage=0.004, wtMult=200, n.trees=200) )
+cvModel( modelFunc=gbmWrap, cvGroup=d2$cvGroup, x=d2[,6:45], y=d2$Signal
+  ,args=list(bag.fraction=0.1, cutoff=0.9, interaction.depth=12, n.minobsinnode=30, shrinkage=0.004, wtMult=200, n.trees=200)
+  ,predFunc=function(fit, newdata){
+     preds = predict(fit[[1]], newdata, n.trees=fit[[1]]$n.trees, type="response")
+     preds = ifelse( preds>fit[[2]], "s", "b" )
+     return(preds) }
+)
