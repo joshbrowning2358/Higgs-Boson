@@ -39,7 +39,7 @@ optParams( func=randomForestWrap, x=d2[1:250000,6:45], y=d2$Label[1:250000], opt
     -AMS(d2$Weight[samVal],  d2$Label[samVal], as.character(pred))}
   ,constArgs=list(ntree=log10(500), nodesize=10, sampsize=0.5, replace=TRUE)
 )
-fit = cvModel( modelFunc=randomForestWrap, cvGroup=d2$cvGroup, x=d2, y=d2$Label
+fit = cvModel( modelFunc=randomForestWrap, cvGroup=d2$cvGroup, x=d2[,6:45], y=d2$Label
   ,args=list(mtry=10, cutoff=0.2, nodesize=10, sampsize=0.5, replace=TRUE, targetProp=0.5, ntree=3.5)
   ,predFunc=function(fit, newdata){as.numeric(predict(fit,newdata)=="s")})
 
